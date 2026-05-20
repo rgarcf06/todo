@@ -1,1 +1,4 @@
-[ ] Segunda tarea
+[x] Tarea 2
+[x] Tarea 3
+[x] Tarea 4
+[ ] Tarea 5

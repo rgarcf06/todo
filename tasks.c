@@ -49,3 +49,17 @@ void delete_task(int id) {
         if (i != id-1) fputs(lines[i], f);
     fclose(f);
 }
+
+void undone_task(int id) {
+    FILE *f = fopen(FILE_NAME, "r");
+    if (!f) return;
+    char lines[100][256];
+    int n = 0;
+    while (fgets(lines[n], sizeof(lines[n]), f)) n++;
+    fclose(f);
+    if (id < 1 || id > n) return;
+    lines[id-1][1] = ' ';
+    f = fopen(FILE_NAME, "w");
+    for (int i = 0; i < n; i++) fputs(lines[i], f);
+    fclose(f);
+}
