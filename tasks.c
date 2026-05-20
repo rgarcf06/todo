@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "tasks.h"
 
 #define FILE_NAME "tasks.txt"
 
 void add_task(const char *desc) {
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char fecha[20];
+    strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm);
     FILE *f = fopen(FILE_NAME, "a");
-    fprintf(f, "[ ] %s\n", desc);
+    fprintf(f, "[ ] %s |%s\n", desc, fecha);
     fclose(f);
-    printf("Tarea añadida.\n");
 }
 
 void list_tasks() {
@@ -63,3 +67,19 @@ void undone_task(int id) {
     for (int i = 0; i < n; i++) fputs(lines[i], f);
     fclose(f);
 }
+
+void edit_task(int id, const char *desc) {
+    FILE *f = fopen(FILE_NAME, "r");
+    if (!f) return;
+    char lines[100][256];
+    int n = 0;
+    while (fgets(lines[n], sizeof(lines[n]), f)) n++;
+    fclose(f);
+    if (id < 1 || id > n) return;
+    char estado = lines[id-1][1];
+    snprintf(lines[id-1], 256, "[%c] %s\n", estado, desc);
+    f = fopen(FILE_NAME, "w");
+    for (int i = 0; i < n; i++) fputs(lines[i], f);
+    fclose(f);
+}
+

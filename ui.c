@@ -68,14 +68,20 @@ void run_ui() {
             else if (tasks[i][1] == 'x') attron(COLOR_PAIR(2));
             else attron(COLOR_PAIR(3));
 
-            mvprintw(i + 2, 2, "%d. %s", i + 1, tasks[i]);
+            char display[MAX_LEN];
+            strncpy(display, tasks[i], MAX_LEN);
+            char *sep = strrchr(display, '|');
+            char fecha_str[20] = "";
+            if (sep) { *sep = 0; strncpy(fecha_str, sep + 1, 19); fecha_str[strcspn(fecha_str, "\n")] = 0; }
+            mvprintw(i + 2, 2, "%d. %s", i + 1, display);
+            mvprintw(i + 2, cols - 12, "%s", fecha_str);
 
             attroff(COLOR_PAIR(1) | COLOR_PAIR(2) | COLOR_PAIR(3) | A_BOLD);
         }
 
         // Ayuda
         mvhline(rows - 2, 0, '-', cols);
-        mvprintw(rows - 1, 0, " a:añadir  d:borrar  enter:completar  q:salir");
+        mvprintw(rows - 1, 0, " a:añadir  e:editar  d:borrar  /:buscar  enter:completar  q:salir");
 
         refresh();
 
@@ -115,6 +121,76 @@ void run_ui() {
             noecho();
             curs_set(0);
             if (strlen(desc) > 0) add_task(desc);
+        }
+
+        else if (ch == 'e' && n > 0) {
+            char desc[MAX_LEN];
+            strncpy(desc, tasks[selected] + 4, MAX_LEN);
+            desc[strcspn(desc, "\n")] = 0;
+
+            int len = strlen(desc);
+            int pos = len;
+
+            while (1) {
+                mvprintw(n + 3, 2, "Editar: %-50s", desc);
+                move(n + 3, 10 + pos);
+                curs_set(1);
+                refresh();
+
+                int c = getch();
+
+                if (c == '\n') break;
+                else if (c == 27) { len = 0; break; }  // ESC cancela
+                else if ((c == KEY_BACKSPACE || c == 127) && pos > 0) {
+                    memmove(&desc[pos-1], &desc[pos], len - pos + 1);
+                    pos--; len--;
+                }
+                else if (c == KEY_LEFT && pos > 0) pos--;
+                else if (c == KEY_RIGHT && pos < len) pos++;
+                else if (c >= 32 && c < 127 && len < MAX_LEN - 1) {
+                    memmove(&desc[pos+1], &desc[pos], len - pos + 1);
+                    desc[pos++] = c;
+                    len++;
+                }
+            }
+
+            curs_set(0);
+            if (len > 0)
+                edit_task(sorted_idx[selected], desc);
+
+        }
+
+        else if (ch == '/' ) {
+            char query[MAX_LEN];
+            int qlen = 0;
+            query[0] = 0;
+
+            while (1) {
+                mvprintw(n + 3, 2, "Buscar: %-40s", query);
+                move(n + 3, 10 + qlen);
+                curs_set(1);
+                refresh();
+
+                int c = getch();
+
+                if (c == '\n') break;
+                else if (c == 27) { qlen = 0; break; }
+                else if ((c == KEY_BACKSPACE || c == 127) && qlen > 0)
+                    query[--qlen] = 0;
+                else if (c >= 32 && c < 127 && qlen < MAX_LEN - 1) {
+                    query[qlen++] = c;
+                    query[qlen] = 0;
+                }
+
+                for (int i = 0; i < n; i++) {
+                    if (strstr(tasks[i], query)) {
+                        selected = i;
+                        break;
+                    }
+                }
+            }
+
+            curs_set(0);
         }
     }
 
