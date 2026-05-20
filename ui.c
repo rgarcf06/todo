@@ -34,14 +34,31 @@ void run_ui() {
 
     while (1) {
         n = load_tasks(tasks);
+
+        char sorted[MAX_TASKS][MAX_LEN];
+        int sorted_idx[MAX_TASKS];
+        int ns = 0;
+        for (int i = 0; i < n; i++)
+            if (tasks[i][1] != 'x') { strcpy(sorted[ns], tasks[i]); sorted_idx[ns++] = i + 1; }
+        for (int i = 0; i < n; i++)
+            if (tasks[i][1] == 'x') { strcpy(sorted[ns], tasks[i]); sorted_idx[ns++] = i + 1; }
+        memcpy(tasks, sorted, sizeof(sorted));
+
         clear();
 
         int rows, cols;
         getmaxyx(stdscr, rows, cols);
 
         // Título
+        int pendientes = 0, completadas = 0;
+        for (int i = 0; i < n; i++) {
+            if (tasks[i][1] == 'x') completadas++;
+            else pendientes++;
+        }
+        char titulo[64];
+        snprintf(titulo, sizeof(titulo), " TAREAS: %d pendientes  %d hechas ", pendientes, completadas);
         attron(A_BOLD);
-        mvprintw(0, (cols - 14) / 2, " GESTOR TAREAS ");
+        mvprintw(0, (cols - strlen(titulo)) / 2, "%s", titulo);
         attroff(A_BOLD);
         mvhline(1, 0, '-', cols);
 
@@ -71,14 +88,22 @@ void run_ui() {
 
         else if (ch == '\n' && n > 0) {
             if (tasks[selected][1] == 'x')
-                undone_task(selected + 1);
+                undone_task(sorted_idx[selected]);
             else
-                done_task(selected + 1);
+                done_task(sorted_idx[selected]);
         }
 
         else if (ch == 'd' && n > 0) {
-            delete_task(selected + 1);
-            if (selected >= n - 1 && selected > 0) selected--;
+            mvprintw(n + 3, 2, "¿Borrar tarea? (s/n): ");
+            echo();
+            curs_set(1);
+            int confirm = getch();
+            noecho();
+            curs_set(0);
+            if (confirm == 's') {
+                delete_task(sorted_idx[selected]);
+                if (selected >= n - 1 && selected > 0) selected--;
+            }
         }
 
         else if (ch == 'a') {

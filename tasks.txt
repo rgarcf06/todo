@@ -1,4 +1,4 @@
-[x] Tarea 2
-[x] Tarea 3
 [x] Tarea 4
-[ ] Tarea 5
+[x] Tarea 5
+[ ] Tarea1
+[ ] Tarea 3
