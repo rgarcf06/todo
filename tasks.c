@@ -34,7 +34,7 @@ void done_task(int id) {
     while (fgets(lines[n], sizeof(lines[n]), f)) n++;
     fclose(f);
     if (id < 1 || id > n) { printf("ID inválido.\n"); return; }
-    lines[id-1][1] = 'x';
+    lines[id-1][5] = 'x';
     f = fopen(FILE_NAME, "w");
     for (int i = 0; i < n; i++) fputs(lines[i], f);
     fclose(f);
@@ -62,7 +62,7 @@ void undone_task(int id) {
     while (fgets(lines[n], sizeof(lines[n]), f)) n++;
     fclose(f);
     if (id < 1 || id > n) return;
-    lines[id-1][1] = ' ';
+    lines[id-1][5] = ' ';
     f = fopen(FILE_NAME, "w");
     for (int i = 0; i < n; i++) fputs(lines[i], f);
     fclose(f);
@@ -76,10 +76,20 @@ void edit_task(int id, const char *desc) {
     while (fgets(lines[n], sizeof(lines[n]), f)) n++;
     fclose(f);
     if (id < 1 || id > n) return;
-    char estado = lines[id-1][1];
-    snprintf(lines[id-1], 256, "[%c] %s\n", estado, desc);
+    char prio = lines[id-1][1];
+    char estado = lines[id-1][4];
+    snprintf(lines[id-1], 256, "[%c] [%c] %s\n", prio, estado, desc);
     f = fopen(FILE_NAME, "w");
     for (int i = 0; i < n; i++) fputs(lines[i], f);
     fclose(f);
 }
 
+void add_task_prio(const char *desc, char prio) {
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char fecha[20];
+    strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm);
+    FILE *f = fopen(FILE_NAME, "a");
+    fprintf(f, "[%c] [ ] %s |%s\n", prio, desc, fecha);
+    fclose(f);
+}

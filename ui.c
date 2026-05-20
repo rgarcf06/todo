@@ -27,6 +27,9 @@ void run_ui() {
     init_pair(1, COLOR_WHITE, COLOR_BLUE);   // seleccionado
     init_pair(2, COLOR_GREEN, COLOR_BLACK);  // completado
     init_pair(3, COLOR_WHITE, COLOR_BLACK);  // normal
+    init_pair(4, COLOR_RED, COLOR_BLACK);    // prioridad alta
+    init_pair(5, COLOR_YELLOW, COLOR_BLACK); // prioridad media
+    init_pair(6, COLOR_CYAN, COLOR_BLACK);   // prioridad baja
 
     char tasks[MAX_TASKS][MAX_LEN];
     int n, selected = 0;
@@ -64,9 +67,11 @@ void run_ui() {
 
         // Lista de tareas
         for (int i = 0; i < n; i++) {
-            if (i == selected) attron(COLOR_PAIR(1) | A_BOLD);
-            else if (tasks[i][1] == 'x') attron(COLOR_PAIR(2));
-            else attron(COLOR_PAIR(3));
+            if (i == selected) attron(COLOR_PAIR(1));
+            else if (tasks[i][5] == 'x') attron(COLOR_PAIR(2));
+            else if (tasks[i][1] == 'A') attron(COLOR_PAIR(4));
+            else if (tasks[i][1] == 'M') attron(COLOR_PAIR(5));
+            else attron(COLOR_PAIR(6));
 
             char display[MAX_LEN];
             strncpy(display, tasks[i], MAX_LEN);
@@ -93,7 +98,7 @@ void run_ui() {
         else if ((ch == KEY_DOWN || ch == 'j') && selected < n - 1) selected++;
 
         else if (ch == '\n' && n > 0) {
-            if (tasks[selected][1] == 'x')
+            if (tasks[selected][5] == 'x')
                 undone_task(sorted_idx[selected]);
             else
                 done_task(sorted_idx[selected]);
@@ -120,7 +125,12 @@ void run_ui() {
             getnstr(desc, MAX_LEN - 1);
             noecho();
             curs_set(0);
-            if (strlen(desc) > 0) add_task(desc);
+            if (strlen(desc) > 0) {
+                mvprintw(n + 4, 2, "Prioridad (a)lta (m)edia (b)aja: ");
+                int p = getch();
+                char prio = (p == 'a') ? 'A' : (p == 'm') ? 'M' : 'B';
+                add_task_prio(desc, prio);
+            }
         }
 
         else if (ch == 'e' && n > 0) {

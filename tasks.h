@@ -7,6 +7,7 @@ void done_task(int id);
 void undone_task(int id);
 void delete_task(int id);
 void edit_task(int id, const char *desc);
+void add_task_prio(const char *desc, char prio);
 
 
 #endif
